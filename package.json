@@ -1,0 +1,44 @@
+{
+  "name": "farmconnect-fullstack",
+  "version": "1.0.0",
+  "description": "Advanced Farming Community Platform with AI Integration",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "nodemon server/index.js",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "install-all": "npm install && cd client && npm install",
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
+    "axios": "^1.5.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "firebase-admin": "^13.4.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.8.7",
+    "multer": "^1.4.5-lts.1",
+    "natural": "^6.5.0",
+    "openai": "^4.11.1",
+    "openweathermap": "^1.0.0",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "farming",
+    "ai",
+    "react",
+    "express",
+    "tensorflow",
+    "firebase"
+  ],
+  "author": "FarmConnect Team",
+  "license": "MIT"
+}
