@@ -3,6 +3,14 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+// Try to import Firebase admin, but handle gracefully if not available
+let admin = null;
+try {
+  admin = require('../config/config');
+} catch (error) {
+  console.warn('Firebase not available for auth routes:', error.message);
+}
+
 // In-memory user storage for development (replace with database in production)
 const users = new Map();
 
@@ -38,16 +46,20 @@ router.post('/register', async (req, res) => {
     // Store user in memory
     users.set(email, user);
     
-    // Store user in Firebase Realtime Database
-    try {
-      const db = admin.database();
-      await db.ref('users/' + user.id).set({
-        ...user,
-        password: undefined // Don't store password in database
-      });
-      console.log('User stored in Firebase successfully');
-    } catch (firebaseError) {
-      console.warn('Firebase storage failed, using in-memory only:', firebaseError.message);
+    // Store user in Firebase Realtime Database (if available)
+    if (admin && admin.apps && admin.apps.length > 0) {
+      try {
+        const db = admin.database();
+        await db.ref('users/' + user.id).set({
+          ...user,
+          password: undefined // Don't store password in database
+        });
+        console.log('User stored in Firebase successfully');
+      } catch (firebaseError) {
+        console.warn('Firebase storage failed, using in-memory only:', firebaseError.message);
+      }
+    } else {
+      console.log('Firebase not initialized, using in-memory storage only');
     }
     
     // Create JWT token with longer expiration
@@ -147,16 +159,20 @@ router.get('/profile', async (req, res) => {
       });
     }
     
-    // Store user in Firebase Realtime Database
-    try {
-      const db = admin.database();
-      await db.ref('users/' + user.id).set({
-        ...user,
-        password: undefined // Don't store password in database
-      });
-      console.log('User stored in Firebase successfully');
-    } catch (firebaseError) {
-      console.warn('Firebase storage failed, using in-memory only:', firebaseError.message);
+    // Store user in Firebase Realtime Database (if available)
+    if (admin && admin.apps && admin.apps.length > 0) {
+      try {
+        const db = admin.database();
+        await db.ref('users/' + user.id).set({
+          ...user,
+          password: undefined // Don't store password in database
+        });
+        console.log('User stored in Firebase successfully');
+      } catch (firebaseError) {
+        console.warn('Firebase storage failed, using in-memory only:', firebaseError.message);
+      }
+    } else {
+      console.log('Firebase not initialized, using in-memory storage only');
     }
     
     // Remove password from response
