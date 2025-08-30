@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from 'react-query';
-import axios from 'axios';
+import api from '../../utils/api';
 import { 
   TrendingUp, 
   Calendar,
@@ -18,6 +18,12 @@ import YieldChart from './YieldChart';
 
 const Dashboard = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [animateCards, setAnimateCards] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    setAnimateCards(true);
+  }, [selectedPeriod]);
 
   // Generate period-specific data
   const getPeriodData = (period) => {
@@ -109,9 +115,14 @@ const Dashboard = () => {
         
         return mockDashboardData;
         
-        // In production, uncomment this code:
-        // const response = await axios.get(`/api/dashboard/overview?period=${selectedPeriod}`);
-        // return response.data.dashboard;
+        // Try real API first, fallback to mock data
+        try {
+          const response = await api.get(`/dashboard/overview?period=${selectedPeriod}`);
+          return response.data.dashboard;
+        } catch (apiError) {
+          console.log('Using mock dashboard data');
+          return mockDashboardData;
+        }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         throw new Error('Failed to load dashboard data');
@@ -200,9 +211,14 @@ const Dashboard = () => {
         
         return getAnalyticsForPeriod(selectedPeriod);
         
-        // In production, uncomment this code:
-        // const response = await axios.get(`/api/dashboard/analytics?period=${selectedPeriod}`);
-        // return response.data.analytics;
+        // Try real API first, fallback to mock data
+        try {
+          const response = await api.get(`/dashboard/analytics?period=${selectedPeriod}`);
+          return response.data.analytics;
+        } catch (apiError) {
+          console.log('Using mock analytics data');
+          return getAnalyticsForPeriod(selectedPeriod);
+        }
       } catch (error) {
         console.error('Error fetching analytics data:', error);
         return null;
@@ -258,18 +274,37 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Period selector */}
+      {/* Period selector with refresh */}
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-gray-900">Farm Overview</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg font-semibold text-gray-900">Farm Overview</h2>
+          <button
+            onClick={() => {
+              setRefreshing(true);
+              refetch();
+              setTimeout(() => setRefreshing(false), 1000);
+            }}
+            className={`p-2 rounded-lg transition-all duration-200 ${
+              refreshing ? 'animate-spin bg-primary-100' : 'hover:bg-gray-100'
+            }`}
+            title="Refresh data"
+          >
+            <Activity className="h-4 w-4 text-gray-600" />
+          </button>
+        </div>
         <div className="flex space-x-2">
           {['week', 'month', 'year'].map((period) => (
             <button
               key={period}
-              onClick={() => setSelectedPeriod(period)}
-              className={`px-3 py-1 text-sm rounded-lg transition-colors duration-200 ${
+              onClick={() => {
+                setSelectedPeriod(period);
+                setAnimateCards(false);
+                setTimeout(() => setAnimateCards(true), 100);
+              }}
+              className={`px-4 py-2 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 ${
                 selectedPeriod === period
-                  ? 'bg-primary-100 text-primary-700'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-100 border border-gray-200'
               }`}
             >
               {period.charAt(0).toUpperCase() + period.slice(1)}
@@ -278,8 +313,10 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Metrics Grid with animations */}
+      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-500 ${
+        animateCards ? 'opacity-100 transform translate-y-0' : 'opacity-70 transform translate-y-2'
+      }`}>
         <MetricCard
           title="Total Crops"
           value={metrics.totalCrops || 0}

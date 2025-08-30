@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from 'react-query';
-import axios from 'axios';
+import api from '../../utils/api';
 import { 
   Search, 
   Plus,
@@ -29,12 +29,12 @@ const Marketplace = () => {
     unit: 'kg'
   });
 
-  // Mock data for listings
+  // Mock data for listings with more variety
   const mockListings = [
     {
       id: 'listing1',
       title: 'Fresh Organic Tomatoes',
-      description: 'Premium quality organic tomatoes, freshly harvested from our farm.',
+      description: 'Premium quality organic tomatoes, freshly harvested from our farm. Rich in nutrients and pesticide-free.',
       category: 'crops',
       price: 45,
       location: 'Pune, Maharashtra',
@@ -45,13 +45,79 @@ const Marketplace = () => {
     {
       id: 'listing2',
       title: 'John Deere Tractor - Model 5050D',
-      description: 'Well-maintained tractor, perfect for medium-scale farming operations.',
+      description: 'Well-maintained tractor, perfect for medium-scale farming operations. Recently serviced with new tires.',
       category: 'equipment',
       price: 850000,
       location: 'Nashik, Maharashtra',
       condition: 'used',
       quantity: 1,
       unit: 'unit'
+    },
+    {
+      id: 'listing3',
+      title: 'Premium Wheat Seeds - HD2967',
+      description: 'High-yield wheat variety suitable for Maharashtra climate. Certified seeds with 95% germination rate.',
+      category: 'seeds',
+      price: 35,
+      location: 'Aurangabad, Maharashtra',
+      condition: 'new',
+      quantity: 50,
+      unit: 'kg'
+    },
+    {
+      id: 'listing4',
+      title: 'Organic Fertilizer - Vermicompost',
+      description: 'Premium quality vermicompost made from organic waste. Rich in nutrients and beneficial microorganisms.',
+      category: 'fertilizers',
+      price: 8,
+      location: 'Satara, Maharashtra',
+      condition: 'new',
+      quantity: 200,
+      unit: 'kg'
+    },
+    {
+      id: 'listing5',
+      title: 'Holstein Friesian Dairy Cow',
+      description: 'Healthy 3-year-old dairy cow, currently giving 25L milk per day. Vaccinated and well-maintained.',
+      category: 'livestock',
+      price: 65000,
+      location: 'Kolhapur, Maharashtra',
+      condition: 'new',
+      quantity: 1,
+      unit: 'unit'
+    },
+    {
+      id: 'listing6',
+      title: 'Drip Irrigation System Kit',
+      description: 'Complete drip irrigation system for 1-acre farm. Includes pipes, emitters, and control valves.',
+      category: 'tools',
+      price: 25000,
+      location: 'Solapur, Maharashtra',
+      condition: 'new',
+      quantity: 1,
+      unit: 'unit'
+    },
+    {
+      id: 'listing7',
+      title: 'Fresh Basmati Rice',
+      description: 'Premium basmati rice, aged for 2 years. Perfect aroma and long grains. Direct from farmer.',
+      category: 'crops',
+      price: 120,
+      location: 'Ahmednagar, Maharashtra',
+      condition: 'new',
+      quantity: 75,
+      unit: 'kg'
+    },
+    {
+      id: 'listing8',
+      title: 'Farm Consultation Services',
+      description: 'Expert agricultural consultation for crop planning, soil management, and yield optimization.',
+      category: 'services',
+      price: 2500,
+      location: 'Mumbai, Maharashtra',
+      condition: 'new',
+      quantity: 1,
+      unit: 'session'
     }
   ];
 
@@ -65,7 +131,7 @@ const Marketplace = () => {
         if (priceRange[0]) params.append('minPrice', priceRange[0]);
         if (priceRange[1]) params.append('maxPrice', priceRange[1]);
         
-        const response = await axios.get(`/api/marketplace/search?${params.toString()}`);
+        const response = await api.get(`/marketplace/search?${params.toString()}`);
         return response.data.listings || [];
       } catch (error) {
         console.error('Error fetching listings:', error);
@@ -104,13 +170,7 @@ const Marketplace = () => {
   const handleListingSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('/api/marketplace/listings', newListing, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await api.post('/marketplace/listings', newListing);
       
       // Add new listing to mock data (in real app, refetch listings)
       mockListings.unshift({
