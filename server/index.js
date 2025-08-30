@@ -7,14 +7,37 @@ const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
 
-// Import routes
-const authRoutes = require('./routes/auth');
-const dashboardRoutes = require('./routes/dashboard');
-const aiRoutes = require('./routes/ai');
-const marketplaceRoutes = require('./routes/marketplace');
-const communityRoutes = require('./routes/community');
-const weatherRoutes = require('./routes/weather');
-const farmHealthRoutes = require('./routes/farmHealth');
+// Initialize Firebase config early to catch any errors
+try {
+  require('./config/config');
+  console.log('Firebase configuration loaded successfully');
+} catch (error) {
+  console.warn('Firebase configuration warning:', error.message);
+}
+
+// Import routes with error handling
+let authRoutes, dashboardRoutes, aiRoutes, marketplaceRoutes, communityRoutes, weatherRoutes, farmHealthRoutes;
+
+try {
+  authRoutes = require('./routes/auth');
+  dashboardRoutes = require('./routes/dashboard');
+  aiRoutes = require('./routes/ai');
+  marketplaceRoutes = require('./routes/marketplace');
+  communityRoutes = require('./routes/community');
+  weatherRoutes = require('./routes/weather');
+  farmHealthRoutes = require('./routes/farmHealth');
+  console.log('All routes loaded successfully');
+} catch (error) {
+  console.error('Error loading routes:', error.message);
+  // Create fallback routes
+  const fallbackRouter = express.Router();
+  fallbackRouter.get('*', (req, res) => {
+    res.status(503).json({ error: 'Service temporarily unavailable' });
+  });
+  
+  authRoutes = dashboardRoutes = aiRoutes = marketplaceRoutes = 
+  communityRoutes = weatherRoutes = farmHealthRoutes = fallbackRouter;
+}
 
 // Load environment variables
 dotenv.config();
