@@ -165,9 +165,13 @@ app.use((req, res, next) => {
 
 // Serve React app for all non-API routes
 app.get('*', (req, res) => {
-  const indexPath = path.join(__dirname, '../client/build/index.html');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
+  const reactIndexPath = path.join(__dirname, '../client/build/index.html');
+  const staticIndexPath = path.join(__dirname, '../public/index.html');
+  
+  if (fs.existsSync(reactIndexPath)) {
+    res.sendFile(reactIndexPath);
+  } else if (fs.existsSync(staticIndexPath)) {
+    res.sendFile(staticIndexPath);
   } else {
     res.send(`
       <html>
