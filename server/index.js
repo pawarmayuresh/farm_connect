@@ -116,6 +116,15 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Health check endpoint (must be before other routes)
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
@@ -197,12 +206,36 @@ app.get('*', (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5002;
+const PORT = process.env.PORT || 5000;
 
+// Add timeout handling for server startup
+const startServer = () => {
+  try {
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(`✅ Server running on port ${PORT}`);
+      console.log(`✅ Health check: http://localhost:${PORT}/health`);
+      console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
 
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+    server.on('error', (error) => {
+      console.error('❌ Server startup error:', error);
+      process.exit(1);
+    });
 
-module.exports = { app, io }; 
+    // Handle graceful shutdown
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM received, shutting down gracefully');
+      server.close(() => {
+        console.log('Process terminated');
+      });
+    });
+
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
+
+module.exports = { app, io };
