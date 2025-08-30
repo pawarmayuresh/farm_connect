@@ -99,9 +99,23 @@ const Dashboard = () => {
           },
           recentActivities: periodData.activities,
           recentPredictions: [
-            { id: 'pred1', cropType: 'Wheat', predictedYield: 4.8, confidence: 0.85, timestamp: new Date().toISOString() },
-            { id: 'pred2', cropType: 'Rice', predictedYield: 5.2, confidence: 0.78, timestamp: new Date(Date.now() - 172800000).toISOString() }
+            { id: 'pred1', cropType: 'Wheat', predictedYield: 4.8, confidence: 0.85, timestamp: new Date().toISOString(), trend: '+12%' },
+            { id: 'pred2', cropType: 'Rice', predictedYield: 5.2, confidence: 0.78, timestamp: new Date(Date.now() - 172800000).toISOString(), trend: '+8%' },
+            { id: 'pred3', cropType: 'Cotton', predictedYield: 2.1, confidence: 0.92, timestamp: new Date(Date.now() - 86400000).toISOString(), trend: '+15%' }
           ],
+          weatherData: {
+            temperature: 28,
+            humidity: 65,
+            condition: 'Partly Cloudy',
+            windSpeed: 12,
+            rainfall: 2.5
+          },
+          yieldTrends: {
+            current: 5.2,
+            previous: 4.8,
+            target: 6.0,
+            trend: '+8.3%'
+          },
           healthSummary: {
             id: 'health1',
             overallScore: periodData.healthScore,
@@ -350,29 +364,220 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activities */}
-        <RecentActivities activities={dashboardData?.recentActivities || []} />
-        
-        {/* Farm Health Overview */}
-        <HealthOverview healthData={dashboardData?.healthSummary} />
-        
-        {/* Weather Widget */}
-        <WeatherWidget location={user.location} />
-        
-        {/* Yield Chart */}
-        <YieldChart yieldData={analyticsData} period={selectedPeriod} />
+      {/* Enhanced Visual Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Quick Stats Card */}
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+              <TrendingUp className="h-6 w-6" />
+            </div>
+            <span className="text-blue-100 text-sm font-medium">Live Data</span>
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Farm Performance</h3>
+          <div className="text-3xl font-bold mb-1">{dashboardData?.yieldTrends?.trend || '+8.3%'}</div>
+          <p className="text-blue-100 text-sm">vs last period</p>
+        </div>
+
+        {/* Weather Quick View */}
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+              <Thermometer className="h-6 w-6" />
+            </div>
+            <span className="text-orange-100 text-sm font-medium">Current</span>
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Weather</h3>
+          <div className="text-3xl font-bold mb-1">{dashboardData?.weatherData?.temperature || 28}°C</div>
+          <p className="text-orange-100 text-sm">{dashboardData?.weatherData?.condition || 'Partly Cloudy'}</p>
+        </div>
+
+        {/* Health Score Quick View */}
+        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+              <Activity className="h-6 w-6" />
+            </div>
+            <span className="text-green-100 text-sm font-medium">Overall</span>
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Health Score</h3>
+          <div className="text-3xl font-bold mb-1">{dashboardData?.healthSummary?.overallScore || 92}%</div>
+          <p className="text-green-100 text-sm">Excellent condition</p>
+        </div>
       </div>
 
-      {/* Additional Visual Analytics */}
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Enhanced Recent Activities */}
+        <div className="card hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary-600" />
+              Recent Activities
+            </h3>
+            <button className="text-primary-600 hover:text-primary-700 text-sm font-medium hover:bg-primary-50 px-3 py-1 rounded-lg transition-all">
+              View All
+            </button>
+          </div>
+          {dashboardData?.recentActivities?.length > 0 ? (
+            <div className="space-y-3">
+              {dashboardData.recentActivities.map((activity, index) => (
+                <div key={activity.id} className={`p-4 rounded-lg border-l-4 transition-all duration-300 hover:shadow-md ${
+                  activity.status === 'completed' ? 'bg-green-50 border-green-400' : 
+                  activity.status === 'pending' ? 'bg-yellow-50 border-yellow-400' : 'bg-blue-50 border-blue-400'
+                } transform hover:translate-x-1`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{activity.title}</h4>
+                      <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        {new Date(activity.timestamp).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className={`w-3 h-3 rounded-full ${
+                      activity.status === 'completed' ? 'bg-green-400' : 
+                      activity.status === 'pending' ? 'bg-yellow-400' : 'bg-blue-400'
+                    }`}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500">No recent activities</p>
+              <button className="mt-3 text-primary-600 hover:text-primary-700 text-sm font-medium">
+                Add Activity
+              </button>
+            </div>
+          )}
+        </div>
+        
+        {/* Enhanced Farm Health Overview */}
+        <div className="card hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Activity className="h-5 w-5 text-green-600" />
+              Farm Health Overview
+            </h3>
+            <button className="text-green-600 hover:text-green-700 text-sm font-medium hover:bg-green-50 px-3 py-1 rounded-lg transition-all">
+              Analyze Now
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+              <div className="text-2xl font-bold text-green-600 mb-1">
+                {dashboardData?.healthSummary?.soilHealth === 'Good' ? '85%' : 'N/A'}
+              </div>
+              <p className="text-sm text-gray-600">Soil Health</p>
+            </div>
+            <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600 mb-1">
+                {dashboardData?.healthSummary?.pestRisk === 'Low' ? '92%' : 'N/A'}
+              </div>
+              <p className="text-sm text-gray-600">Crop Health</p>
+            </div>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h4 className="font-medium text-gray-900 mb-2">Overall Health Score</h4>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 bg-gray-200 rounded-full h-3">
+                <div className="bg-gradient-to-r from-green-400 to-green-500 h-3 rounded-full transition-all duration-1000" 
+                     style={{width: `${dashboardData?.healthSummary?.overallScore || 92}%`}}></div>
+              </div>
+              <span className="font-bold text-green-600">{dashboardData?.healthSummary?.overallScore || 92}%</span>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">Excellent condition - keep up the good work!</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Enhanced Secondary Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Weather Widget */}
+        <div className="card hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Thermometer className="h-5 w-5 text-orange-600" />
+              Weather Conditions
+            </h3>
+            <span className="text-orange-600 text-sm font-medium">Live</span>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 text-center">
+              <div className="text-3xl mb-2">🌤️</div>
+              <div className="text-xl font-bold text-orange-600 mb-1">{dashboardData?.weatherData?.temperature || 28}°C</div>
+              <p className="text-sm text-gray-600">Temperature</p>
+            </div>
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center">
+              <div className="text-3xl mb-2">💧</div>
+              <div className="text-xl font-bold text-blue-600 mb-1">{dashboardData?.weatherData?.humidity || 65}%</div>
+              <p className="text-sm text-gray-600">Humidity</p>
+            </div>
+          </div>
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <p className="text-sm text-gray-600 text-center">
+              {dashboardData?.weatherData?.condition || 'Partly Cloudy'} • Wind: {dashboardData?.weatherData?.windSpeed || 12} km/h
+            </p>
+          </div>
+        </div>
+        
+        {/* Enhanced Yield Analytics */}
+        <div className="card hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-purple-600" />
+              Yield Analytics
+            </h3>
+            <span className="text-purple-600 text-sm font-medium">Updated</span>
+          </div>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600 mb-1">
+                {dashboardData?.yieldTrends?.current || 5.2}
+              </div>
+              <p className="text-sm text-gray-600">Current Yield (tons/ha)</p>
+              <p className="text-xs text-green-600 font-medium mt-1">{dashboardData?.yieldTrends?.trend || '+8.3%'}</p>
+            </div>
+            <div className="text-center p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg">
+              <div className="text-2xl font-bold text-indigo-600 mb-1">
+                {dashboardData?.yieldTrends?.target || 6.0}
+              </div>
+              <p className="text-sm text-gray-600">Target Yield</p>
+              <p className="text-xs text-gray-500 mt-1">87% achieved</p>
+            </div>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h4 className="font-medium text-gray-900 mb-3">6-Month Trend</h4>
+            <div className="flex items-end justify-between h-16 gap-1">
+              {[4.2, 4.5, 4.8, 5.0, 5.1, 5.2].map((value, index) => (
+                <div key={index} className="flex-1 flex flex-col items-center">
+                  <div 
+                    className="bg-gradient-to-t from-purple-400 to-purple-500 rounded-t transition-all duration-1000 ease-out w-full"
+                    style={{height: `${(value / 6.0) * 100}%`}}
+                  ></div>
+                  <span className="text-xs text-gray-500 mt-1">
+                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'][index]}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive Analytics Dashboard */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        {/* Crop Distribution Chart */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Crop Distribution 
-            <span className="text-sm font-normal text-gray-500 ml-2">({selectedPeriod})</span>
-          </h3>
+        {/* Enhanced Crop Distribution Chart */}
+        <div className="card hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Leaf className="h-5 w-5 text-green-600" />
+              Crop Distribution
+              <span className="text-sm font-normal text-gray-500 ml-2">({selectedPeriod})</span>
+            </h3>
+            <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+          </div>
           <div className="space-y-3">
             {(user.crops || ['Wheat', 'Rice', 'Cotton', 'Sugarcane']).map((crop, index) => {
               const periodData = getPeriodData(selectedPeriod);
@@ -401,12 +606,19 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Tasks Progress */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {selectedPeriod === 'week' ? 'Weekly' : selectedPeriod === 'year' ? 'Annual' : 'Monthly'} Progress
-            <span className="text-sm font-normal text-gray-500 ml-2">({selectedPeriod})</span>
-          </h3>
+        {/* Enhanced Tasks Progress */}
+        <div className="card hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-blue-600" />
+              {selectedPeriod === 'week' ? 'Weekly' : selectedPeriod === 'year' ? 'Annual' : 'Monthly'} Progress
+              <span className="text-sm font-normal text-gray-500 ml-2">({selectedPeriod})</span>
+            </h3>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+              <span className="text-blue-600 text-sm font-medium">Active</span>
+            </div>
+          </div>
           <div className="text-center mb-4">
             <div className="relative inline-flex items-center justify-center w-24 h-24">
               <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
@@ -464,12 +676,19 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Health Score Gauge */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Farm Health
-            <span className="text-sm font-normal text-gray-500 ml-2">({selectedPeriod})</span>
-          </h3>
+        {/* Enhanced Health Score Gauge */}
+        <div className="card hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Activity className="h-5 w-5 text-red-600" />
+              Farm Health
+              <span className="text-sm font-normal text-gray-500 ml-2">({selectedPeriod})</span>
+            </h3>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-green-600 text-sm font-medium">Monitoring</span>
+            </div>
+          </div>
           <div className="text-center mb-4">
             <div className="relative inline-flex items-center justify-center w-24 h-24">
               <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
@@ -525,6 +744,87 @@ const Dashboard = () => {
               </p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Interactive Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+        <button className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+          <div className="text-center">
+            <Leaf className="h-8 w-8 mx-auto mb-2" />
+            <div className="font-semibold">Add Crop</div>
+            <div className="text-xs opacity-90">Track new crops</div>
+          </div>
+        </button>
+        
+        <button className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+          <div className="text-center">
+            <Calendar className="h-8 w-8 mx-auto mb-2" />
+            <div className="font-semibold">Schedule Task</div>
+            <div className="text-xs opacity-90">Plan activities</div>
+          </div>
+        </button>
+        
+        <button className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+          <div className="text-center">
+            <Activity className="h-8 w-8 mx-auto mb-2" />
+            <div className="font-semibold">Health Check</div>
+            <div className="text-xs opacity-90">Analyze farm</div>
+          </div>
+        </button>
+        
+        <button className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+          <div className="text-center">
+            <TrendingUp className="h-8 w-8 mx-auto mb-2" />
+            <div className="font-semibold">View Reports</div>
+            <div className="text-xs opacity-90">Analytics</div>
+          </div>
+        </button>
+      </div>
+
+      {/* Recent Predictions Card */}
+      <div className="card mt-6 hover:shadow-lg transition-all duration-300">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-indigo-600" />
+            Recent Yield Predictions
+          </h3>
+          <button className="text-indigo-600 hover:text-indigo-700 text-sm font-medium hover:bg-indigo-50 px-3 py-1 rounded-lg transition-all">
+            View All
+          </button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {dashboardData?.recentPredictions?.map((prediction, index) => (
+            <div key={prediction.id} className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200 hover:shadow-md transition-all duration-300 transform hover:scale-105">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-gray-900">{prediction.cropType}</h4>
+                <span className="text-xs bg-indigo-200 text-indigo-700 px-2 py-1 rounded-full font-medium">
+                  {Math.round(prediction.confidence * 100)}% confidence
+                </span>
+              </div>
+              <div className="text-2xl font-bold text-indigo-600 mb-1">
+                {prediction.predictedYield} tons/ha
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">
+                  {new Date(prediction.timestamp).toLocaleDateString()}
+                </span>
+                <span className="text-sm font-medium text-green-600">
+                  {prediction.trend}
+                </span>
+              </div>
+            </div>
+          )) || [
+            <div key="placeholder1" className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200">
+              <div className="text-center py-4">
+                <TrendingUp className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm">No predictions yet</p>
+                <button className="mt-2 text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                  Generate Prediction
+                </button>
+              </div>
+            </div>
+          ]}
         </div>
       </div>
     </div>
