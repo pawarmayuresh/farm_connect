@@ -35,11 +35,11 @@ router.post('/chat', async (req, res) => {
     const apiKey = process.env.OPENAI_API_KEY;
     
     if (!apiKey) {
-      const fallbackResponse = generateFallbackResponse(message);
+      console.warn('OpenAI API key not configured, using fallback response');
       return res.json({
         success: true,
-        response: fallbackResponse,
-        source: 'fallback'
+        response: "I'm here to help with your farming questions! You can ask me about crop management, weather planning, pest control, soil health, or any other farming topics. How can I assist you today?",
+        source: 'fallback_no_key'
       });
     }
     
@@ -67,6 +67,18 @@ router.post('/chat', async (req, res) => {
       });
     } catch (openaiError) {
       console.error('OpenAI API error:', openaiError);
+      
+      // Handle specific OpenAI errors
+      if (openaiError.status === 429 || openaiError.message?.includes('quota')) {
+        console.warn('OpenAI quota exceeded, using enhanced fallback');
+        const fallbackResponse = generateEnhancedFallbackResponse(message || 'farming advice');
+        return res.json({
+          success: true,
+          response: fallbackResponse,
+          source: 'fallback_quota_exceeded'
+        });
+      }
+      
       const fallbackResponse = generateFallbackResponse(message || 'farming advice');
       res.json({
         success: true,
@@ -84,6 +96,25 @@ router.post('/chat', async (req, res) => {
     });
   }
 });
+
+// Enhanced fallback response generator for quota exceeded
+function generateEnhancedFallbackResponse(message) {
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes('weather') || lowerMessage.includes('rain') || lowerMessage.includes('temperature')) {
+    return "🌦️ **Weather & Farming Advice**: Monitor local weather patterns and adjust irrigation accordingly. During Maharashtra's monsoon (June-September), ensure proper field drainage. For summer crops, implement drip irrigation to conserve water. Check weather forecasts before applying fertilizers or pesticides.";
+  } else if (lowerMessage.includes('crop') || lowerMessage.includes('plant') || lowerMessage.includes('grow')) {
+    return "🌱 **Crop Management**: For Maharashtra farming, consider seasonal crops like sugarcane, cotton, and soybeans. Practice crop rotation to maintain soil health. Use organic fertilizers and follow IPM (Integrated Pest Management) practices. Plant according to monsoon timing for optimal yield.";
+  } else if (lowerMessage.includes('pest') || lowerMessage.includes('disease') || lowerMessage.includes('insect')) {
+    return "🐛 **Pest & Disease Control**: Use neem-based organic pesticides as first defense. Monitor crops regularly for early detection. Implement companion planting and maintain field hygiene. For severe infestations, consult local agricultural extension officers for targeted treatments.";
+  } else if (lowerMessage.includes('soil') || lowerMessage.includes('fertilizer') || lowerMessage.includes('nutrient')) {
+    return "🌾 **Soil Health**: Test soil pH regularly (ideal 6.0-7.5 for most crops). Use compost and organic matter to improve soil structure. Apply balanced NPK fertilizers based on soil test results. Practice green manuring with leguminous crops to enhance nitrogen content.";
+  } else if (lowerMessage.includes('irrigation') || lowerMessage.includes('water')) {
+    return "💧 **Water Management**: Implement drip or sprinkler irrigation for water efficiency. Schedule irrigation during early morning or evening to reduce evaporation. Monitor soil moisture levels and avoid overwatering. Collect rainwater during monsoon for dry season use.";
+  } else {
+    return "🚜 **FarmConnect AI Assistant**: I'm here to help with your farming questions! Ask me about crop management, pest control, soil health, irrigation, weather planning, or any farming challenges you're facing. I provide practical advice tailored for Indian agriculture.";
+  }
+}
 
 // Fallback response generator
 function generateFallbackResponse(message) {
