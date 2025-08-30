@@ -3,9 +3,8 @@ services:
     name: farmconnect
     env: node
     plan: free
-    buildCommand: npm ci && cd client && npm ci && npm run build
+    buildCommand: npm ci && cd client && npm ci && npm run build && cd ..
     startCommand: npm start
-    publishPath: ./client/build
     envVars:
       - key: NODE_ENV
         value: production

@@ -67,7 +67,29 @@ app.use('/api/weather', weatherRoutes);
 app.use('/api/farm-health', farmHealthRoutes);
 
 // Serve static files from React build (after API routes)
-app.use(express.static(path.join(__dirname, '../client/build')));
+const buildPath = path.join(__dirname, '../client/build');
+const fs = require('fs');
+
+// Check if build directory exists
+if (fs.existsSync(buildPath)) {
+  app.use(express.static(buildPath));
+  console.log('Serving React build files from:', buildPath);
+} else {
+  console.warn('React build directory not found at:', buildPath);
+  // Serve a simple fallback page
+  app.get('/', (req, res) => {
+    res.send(`
+      <html>
+        <head><title>FarmConnect</title></head>
+        <body>
+          <h1>FarmConnect</h1>
+          <p>Application is starting up...</p>
+          <p>Build directory: ${buildPath}</p>
+        </body>
+      </html>
+    `);
+  });
+}
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
@@ -91,7 +113,21 @@ app.use((req, res, next) => {
 
 // Serve React app for all non-API routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/build/index.html'));
+  const indexPath = path.join(__dirname, '../client/build/index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.send(`
+      <html>
+        <head><title>FarmConnect</title></head>
+        <body>
+          <h1>FarmConnect API Server</h1>
+          <p>Server is running but React build not found.</p>
+          <p>API endpoints are available at /api/*</p>
+        </body>
+      </html>
+    `);
+  }
 });
 
 const PORT = process.env.PORT || 5002;
