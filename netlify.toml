@@ -1,0 +1,17 @@
+[build]
+  base = "client"
+  publish = "client/build"
+  command = "npm run build"
+
+[build.environment]
+  CI = "false"
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.production.environment]
+  REACT_APP_API_URL = "https://farm-connect-5.onrender.com/api"
+  REACT_APP_BACKEND_URL = "https://farm-connect-5.onrender.com"
