@@ -116,14 +116,18 @@ app.use('/api/farm-health', farmHealthRoutes);
 
 // Serve static files from React build (after API routes)
 const buildPath = path.join(__dirname, '../client/build');
+const publicPath = path.join(__dirname, '../public');
 const fs = require('fs');
 
-// Check if build directory exists
+// Check if build directory exists, otherwise serve public folder
 if (fs.existsSync(buildPath)) {
   app.use(express.static(buildPath));
   console.log('Serving React build files from:', buildPath);
+} else if (fs.existsSync(publicPath)) {
+  app.use(express.static(publicPath));
+  console.log('Serving static files from public directory:', publicPath);
 } else {
-  console.warn('React build directory not found at:', buildPath);
+  console.warn('Neither React build nor public directory found');
   // Serve a simple fallback page
   app.get('/', (req, res) => {
     res.send(`
