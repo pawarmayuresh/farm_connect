@@ -13,7 +13,6 @@
     "render-build": "npm ci && cd client && npm ci && npm run build"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^4.22.0",
     "axios": "^1.5.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",

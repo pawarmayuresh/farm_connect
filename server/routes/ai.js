@@ -2,7 +2,15 @@ require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const OpenAI = require('openai');
-const tf = require('@tensorflow/tfjs');
+
+// Optional TensorFlow.js import with error handling
+let tf = null;
+try {
+  tf = require('@tensorflow/tfjs');
+  console.log('TensorFlow.js loaded successfully');
+} catch (error) {
+  console.warn('TensorFlow.js not available, using fallback algorithms:', error.message);
+}
 
 const natural = require('natural');
 
@@ -314,22 +322,32 @@ function predictYield(inputData, cropType) {
 }
 
 async function createYieldPredictionModel() {
-  const model = tf.sequential({
-    layers: [
-      tf.layers.dense({ inputShape: [6], units: 64, activation: 'relu' }),
-      tf.layers.dropout({ rate: 0.2 }),
-      tf.layers.dense({ units: 32, activation: 'relu' }),
-      tf.layers.dropout({ rate: 0.2 }),
-      tf.layers.dense({ units: 1, activation: 'linear' })
-    ]
-  });
+  if (!tf) {
+    console.warn('TensorFlow.js not available, skipping model creation');
+    return null;
+  }
   
-  model.compile({
-    optimizer: tf.train.adam(0.001),
-    loss: 'meanSquaredError'
-  });
-  
-  return model;
+  try {
+    const model = tf.sequential({
+      layers: [
+        tf.layers.dense({ inputShape: [6], units: 64, activation: 'relu' }),
+        tf.layers.dropout({ rate: 0.2 }),
+        tf.layers.dense({ units: 32, activation: 'relu' }),
+        tf.layers.dropout({ rate: 0.2 }),
+        tf.layers.dense({ units: 1, activation: 'linear' })
+      ]
+    });
+    
+    model.compile({
+      optimizer: tf.train.adam(0.001),
+      loss: 'meanSquaredError'
+    });
+    
+    return model;
+  } catch (error) {
+    console.error('Error creating TensorFlow model:', error);
+    return null;
+  }
 }
 
 function calculateConfidence(soilMoisture, temperature, rainfall) {
