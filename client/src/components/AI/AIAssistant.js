@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMutation, useQuery } from 'react-query';
-import axios from 'axios';
+import api from '../../utils/api';
 import { Send, Bot, User, Loader2, Sparkles, BookOpen, Lightbulb, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -26,7 +26,7 @@ const AIAssistant = () => {
   const { data: chatData, isLoading, error } = useQuery(
     ['chat-history'],
     async () => {
-      const response = await axios.get('/api/ai/chat-history');
+      const response = await api.get('/ai/chat-history');
       return response.data.chats || [];
     },
     {
@@ -39,7 +39,7 @@ const AIAssistant = () => {
   // Send message mutation
   const sendMessageMutation = useMutation(
     async (messageData) => {
-      const response = await axios.post('/api/ai/chat', messageData);
+      const response = await api.post('/ai/chat', messageData);
       return response.data;
     },
     {

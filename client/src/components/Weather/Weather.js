@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from 'react-query';
-import axios from 'axios';
+import api from '../../utils/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   Cloud, 
@@ -21,7 +21,7 @@ const Weather = () => {
   const { data: currentWeather, isLoading: currentLoading } = useQuery(
     ['weather', location, 'current'],
     async () => {
-      const response = await axios.get(`/api/weather/current/${location}`);
+      const response = await api.get(`/weather/current/${location}`);
       return response.data.weather;
     },
     { enabled: !!location }
@@ -30,7 +30,7 @@ const Weather = () => {
   const { data: forecast, isLoading: forecastLoading } = useQuery(
     ['weather', location, 'forecast'],
     async () => {
-      const response = await axios.get(`/api/weather/forecast/${location}`);
+      const response = await api.get(`/weather/forecast/${location}`);
       return response.data.forecast;
     },
     { enabled: !!location }
@@ -39,7 +39,7 @@ const Weather = () => {
   const { data: alerts, isLoading: alertsLoading } = useQuery(
     ['weather', location, 'alerts'],
     async () => {
-      const response = await axios.get(`/api/weather/alerts/${location}`);
+      const response = await api.get(`/weather/alerts/${location}`);
       return response.data.alerts;
     },
     { enabled: !!location }

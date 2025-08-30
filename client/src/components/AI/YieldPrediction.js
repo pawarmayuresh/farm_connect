@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation } from 'react-query';
-import axios from 'axios';
+import api from '../../utils/api';
 import { useForm } from 'react-hook-form';
 import { 
   Calculator, 
@@ -24,7 +24,7 @@ const YieldPrediction = () => {
   // Fetch prediction history
   const fetchHistory = async () => {
     try {
-      const response = await axios.get('/api/ai/yield-predictions');
+      const response = await api.get('/ai/yield-predictions');
       setPredictions(response.data.predictions || []);
     } catch (error) {
       console.error('Failed to fetch prediction history:', error);
@@ -34,7 +34,7 @@ const YieldPrediction = () => {
   // Yield prediction mutation
   const predictionMutation = useMutation(
     async (data) => {
-      const response = await axios.post('/api/ai/yield-prediction', data);
+      const response = await api.post('/ai/yield-prediction', data);
       return response.data;
     },
     {
