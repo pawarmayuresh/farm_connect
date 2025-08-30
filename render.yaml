@@ -3,7 +3,7 @@ services:
     name: farmconnect
     env: node
     plan: free
-    buildCommand: npm run render-build
+    buildCommand: npm ci && cd client && npm ci && npm run build
     startCommand: npm start
     publishPath: ./client/build
     envVars:
@@ -11,3 +11,5 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: NODE_VERSION
+        value: 18.17.0
