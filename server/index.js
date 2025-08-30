@@ -94,14 +94,25 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: [
+      process.env.CLIENT_URL || "http://localhost:3000",
+      "https://farm-connect-5.onrender.com",
+      /^https:\/\/.*\.vercel\.app$/
+    ],
     methods: ["GET", "POST"]
   }
 });
 
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    process.env.CLIENT_URL || "http://localhost:3000",
+    "https://farm-connect-5.onrender.com",
+    /^https:\/\/.*\.vercel\.app$/
+  ],
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
