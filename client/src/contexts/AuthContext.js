@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // Configuration - adjust these based on your backend setup
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5002/api';
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://farm-connect-5.onrender.com/api';
   
   console.log('AuthContext initialized with API_BASE_URL:', API_BASE_URL);
 
