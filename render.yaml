@@ -5,6 +5,7 @@ services:
     plan: free
     buildCommand: npm run render-build
     startCommand: npm start
+    publishPath: ./client/build
     envVars:
       - key: NODE_ENV
         value: production
