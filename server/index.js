@@ -15,28 +15,76 @@ try {
   console.warn('Firebase configuration warning:', error.message);
 }
 
-// Import routes with error handling
+// Import routes with individual error handling
 let authRoutes, dashboardRoutes, aiRoutes, marketplaceRoutes, communityRoutes, weatherRoutes, farmHealthRoutes;
 
+// Create fallback router
+const createFallbackRouter = (routeName) => {
+  const fallbackRouter = express.Router();
+  fallbackRouter.all('*', (req, res) => {
+    res.status(503).json({ 
+      error: `${routeName} service temporarily unavailable`,
+      message: 'Some features may be limited during deployment'
+    });
+  });
+  return fallbackRouter;
+};
+
+// Load routes individually with error handling
 try {
   authRoutes = require('./routes/auth');
-  dashboardRoutes = require('./routes/dashboard');
-  aiRoutes = require('./routes/ai');
-  marketplaceRoutes = require('./routes/marketplace');
-  communityRoutes = require('./routes/community');
-  weatherRoutes = require('./routes/weather');
-  farmHealthRoutes = require('./routes/farmHealth');
-  console.log('All routes loaded successfully');
+  console.log('Auth routes loaded');
 } catch (error) {
-  console.error('Error loading routes:', error.message);
-  // Create fallback routes
-  const fallbackRouter = express.Router();
-  fallbackRouter.get('*', (req, res) => {
-    res.status(503).json({ error: 'Service temporarily unavailable' });
-  });
-  
-  authRoutes = dashboardRoutes = aiRoutes = marketplaceRoutes = 
-  communityRoutes = weatherRoutes = farmHealthRoutes = fallbackRouter;
+  console.warn('Auth routes failed to load:', error.message);
+  authRoutes = createFallbackRouter('Auth');
+}
+
+try {
+  dashboardRoutes = require('./routes/dashboard');
+  console.log('Dashboard routes loaded');
+} catch (error) {
+  console.warn('Dashboard routes failed to load:', error.message);
+  dashboardRoutes = createFallbackRouter('Dashboard');
+}
+
+try {
+  aiRoutes = require('./routes/ai');
+  console.log('AI routes loaded');
+} catch (error) {
+  console.warn('AI routes failed to load:', error.message);
+  aiRoutes = createFallbackRouter('AI');
+}
+
+try {
+  marketplaceRoutes = require('./routes/marketplace');
+  console.log('Marketplace routes loaded');
+} catch (error) {
+  console.warn('Marketplace routes failed to load:', error.message);
+  marketplaceRoutes = createFallbackRouter('Marketplace');
+}
+
+try {
+  communityRoutes = require('./routes/community');
+  console.log('Community routes loaded');
+} catch (error) {
+  console.warn('Community routes failed to load:', error.message);
+  communityRoutes = createFallbackRouter('Community');
+}
+
+try {
+  weatherRoutes = require('./routes/weather');
+  console.log('Weather routes loaded');
+} catch (error) {
+  console.warn('Weather routes failed to load:', error.message);
+  weatherRoutes = createFallbackRouter('Weather');
+}
+
+try {
+  farmHealthRoutes = require('./routes/farmHealth');
+  console.log('Farm Health routes loaded');
+} catch (error) {
+  console.warn('Farm Health routes failed to load:', error.message);
+  farmHealthRoutes = createFallbackRouter('FarmHealth');
 }
 
 // Load environment variables
