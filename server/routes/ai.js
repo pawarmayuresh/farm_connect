@@ -17,11 +17,32 @@ const natural = require('natural');
 // Use the centralized Firebase config
 const admin = require('../config/config');
 
-// Helper to get OpenAI client with fresh env
+// Enhanced fallback chat response function
+function getFallbackChatResponse(message) {
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes('weather')) {
+    return "🌤️ For accurate weather information, I recommend checking local meteorological services. In Maharashtra, monsoon season typically runs June-September. Plan your crops accordingly and always have contingency plans for unexpected weather changes.";
+  } else if (lowerMessage.includes('crop') || lowerMessage.includes('plant') || lowerMessage.includes('grow')) {
+    return "🌾 For crop management, consider these key factors: soil preparation, proper seed selection, timely irrigation, and regular monitoring. Maharashtra's climate is suitable for crops like cotton, sugarcane, wheat, and rice. Consult local agricultural extension services for region-specific advice.";
+  } else if (lowerMessage.includes('pest') || lowerMessage.includes('disease') || lowerMessage.includes('insect')) {
+    return "🐛 For pest and disease management, use integrated pest management (IPM) practices: regular field inspection, biological controls, crop rotation, and targeted pesticide use only when necessary. Early detection is key to effective control.";
+  } else if (lowerMessage.includes('soil') || lowerMessage.includes('fertilizer')) {
+    return "🌱 Soil health is crucial for farming success. Test your soil pH (ideal: 6.0-7.5), ensure proper drainage, add organic matter like compost, and use balanced fertilizers. Consider soil testing every 2-3 years for optimal nutrient management.";
+  } else if (lowerMessage.includes('water') || lowerMessage.includes('irrigation')) {
+    return "💧 Efficient water management is essential. Use drip irrigation for water conservation, mulching to retain moisture, and plan irrigation based on crop growth stages. Monitor soil moisture regularly to avoid over or under-watering.";
+  } else if (lowerMessage.includes('market') || lowerMessage.includes('price') || lowerMessage.includes('sell')) {
+    return "💰 For better market returns: plan crop timing with market demand, maintain quality standards, explore direct marketing options, join farmer producer organizations, and stay updated with market prices through agricultural apps and local mandis.";
+  } else {
+    return "🚜 I'm here to help with your farming questions! You can ask me about crop management, weather planning, pest control, soil health, irrigation, market strategies, or any other farming topics. How can I assist you with your agricultural needs today?";
+  }
+}
+
+// Helper to get OpenAI client with validation
 function getOpenAIClient() {
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('OpenAI API key not configured');
+  if (!apiKey || apiKey === 'your_openai_api_key_here' || apiKey.length < 20) {
+    throw new Error('OpenAI API key not configured or invalid');
   }
   return new OpenAI({
     apiKey: apiKey
@@ -34,11 +55,12 @@ router.post('/chat', async (req, res) => {
     const { message, userId, farmContext } = req.body;
     const apiKey = process.env.OPENAI_API_KEY;
     
-    if (!apiKey) {
-      console.warn('OpenAI API key not configured, using fallback response');
+    if (!apiKey || apiKey === 'your_openai_api_key_here' || apiKey.length < 20) {
+      console.warn('OpenAI API key not configured or invalid, using fallback response');
+      const fallbackResponse = getFallbackChatResponse(message);
       return res.json({
         success: true,
-        response: "I'm here to help with your farming questions! You can ask me about crop management, weather planning, pest control, soil health, or any other farming topics. How can I assist you today?",
+        response: fallbackResponse,
         source: 'fallback_no_key'
       });
     }
@@ -66,21 +88,10 @@ router.post('/chat', async (req, res) => {
         source: 'openai'
       });
     } catch (openaiError) {
-      console.error('OpenAI API error:', openaiError);
+      console.error('OpenAI API error:', openaiError.message);
       
-      // Handle specific OpenAI errors
-      if (openaiError.status === 429 || openaiError.message?.includes('quota')) {
-        console.warn('OpenAI quota exceeded, using enhanced fallback');
-        const fallbackResponse = generateEnhancedFallbackResponse(message || 'farming advice');
-        return res.json({
-          success: true,
-          response: fallbackResponse,
-          source: 'fallback_quota_exceeded'
-        });
-      }
-      
-      const fallbackResponse = generateFallbackResponse(message || 'farming advice');
-      res.json({
+      const fallbackResponse = getFallbackChatResponse(message);
+      return res.json({
         success: true,
         response: fallbackResponse,
         source: 'fallback_error'
@@ -88,11 +99,11 @@ router.post('/chat', async (req, res) => {
     }
   } catch (error) {
     console.error('Chat error:', error);
-    const fallbackResponse = generateFallbackResponse(req.body?.message || 'farming advice');
+    const fallbackResponse = getFallbackChatResponse(req.body?.message || 'farming advice');
     res.json({
       success: true,
       response: fallbackResponse,
-      source: 'fallback_error'
+      source: 'fallback_system_error'
     });
   }
 });
